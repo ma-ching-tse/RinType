@@ -1,0 +1,15 @@
+{
+  "name": "rintype",
+  "version": "1.0.0",
+  "description": "Figma plugin for checking Chinese/English text writing standards",
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  }
+}

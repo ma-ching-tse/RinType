@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>/* INLINE_CSS */</style>
+</head>
+<body>
+  <div id="app">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="scope-selector">
+        <button class="scope-btn active" data-scope="frame">当前画板</button>
+        <button class="scope-btn" data-scope="selection">当前选中</button>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary" id="fix-all-btn" disabled>全部修复</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar" id="stats-bar"></div>
+
+    <!-- Filter chips -->
+    <div class="filter-bar" id="filter-bar"></div>
+
+    <!-- Progress -->
+    <div class="progress-bar" id="progress-bar" style="display:none">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">✓</div>
+      <p>选中画板或文本图层即可自动检查</p>
+    </div>
+
+    <!-- Issue list -->
+    <div class="issue-list" id="issue-list"></div>
+  </div>
+
+  <script>/* INLINE_JS */</script>
+</body>
+</html>
