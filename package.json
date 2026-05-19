@@ -1,6 +1,6 @@
 {
   "name": "rintype",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Figma plugin for checking Chinese/English text writing standards",
   "scripts": {
     "build": "node esbuild.js",
