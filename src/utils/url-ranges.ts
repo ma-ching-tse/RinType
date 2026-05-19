@@ -1,7 +1,10 @@
 // Shared URL detection — used to skip rules inside URLs (capitalization, spacing, etc.)
 // since URLs are case- and character-sensitive and rewriting them would break the link.
 
-export const URL_REGEX = /(?:https?:\/\/|www\.)[^\s<>"'）】」》]+/g;
+// `https?://` allows zero trailing chars so a stray `http://` (even followed by a space) is still
+// treated as a URL fragment and protected. `www.` still requires at least one char to avoid
+// matching standalone `www.` text that isn't a URL.
+export const URL_REGEX = /(?:https?:\/\/[^\s<>"'）】」》]*|www\.[^\s<>"'）】」》]+)/g;
 
 export type Range = [number, number]; // [start, endExclusive]
 
