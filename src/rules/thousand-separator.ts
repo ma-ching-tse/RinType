@@ -30,6 +30,17 @@ function isYearOrDate(text: string, matchIndex: number, num: string): boolean {
   return false;
 }
 
+// Identifier keywords (English + Chinese). When one of these appears immediately before
+// the number (optionally separated by `:` `#` `=` `-` or spaces), the number is treated
+// as an identifier (referral code / order ID / account number / ...) and not formatted.
+const IDENTIFIER_PATTERN =
+  /(?:code|referral|invite|promo|redeem|coupon|order|invoice|account|ticket|session|user|customer|member|hash|txid|tx|ref|id|no\.?|num\.?|number|号码|编号|订单号|订单|邀请码|推荐码|优惠码|兑换码|账号|账户|账户号|用户名|用户号|会员号|发票号|验证码|激活码|码|号)[\s:：#＃=＝\-—–]*$/i;
+
+function isIdentifier(text: string, matchIndex: number): boolean {
+  const before = text.slice(Math.max(0, matchIndex - 24), matchIndex);
+  return IDENTIFIER_PATTERN.test(before);
+}
+
 export const thousandSeparator: Rule = {
   id: 'thousand-separator',
   name: '千分符',
@@ -47,6 +58,7 @@ export const thousandSeparator: Rule = {
       const numOffset = match.index + match[0].length - num.length;
 
       if (isYearOrDate(text, numOffset, num)) continue;
+      if (isIdentifier(text, numOffset)) continue;
 
       const formatted = addThousandSeparator(num);
       if (formatted !== num) {
@@ -77,6 +89,7 @@ export const thousandSeparator: Rule = {
       const numOffset = idx + prefix.length;
 
       if (isYearOrDate(text, numOffset, num)) return fullMatch;
+      if (isIdentifier(text, numOffset)) return fullMatch;
 
       return prefix + addThousandSeparator(num);
     });
