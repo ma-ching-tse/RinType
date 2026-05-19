@@ -3,6 +3,7 @@ import type { RuleMeta } from './types';
 import { collectTargets } from './scanner';
 import { scanInBatches } from './scanner/batch';
 import { allRules, ruleMap } from './rules';
+import { fixOutsideUrls } from './utils/url-ranges';
 
 // Show plugin UI
 figma.showUI(__html__, {
@@ -38,7 +39,7 @@ async function autoScan(): Promise<void> {
     const targets = collectTargets(currentScope);
 
     if (targets.length === 0) {
-      send({ type: 'scan-results', results: [], rules: rulesMeta });
+      send({ type: 'scan-results', results: [], rules: rulesMeta, scannedCount: 0 });
       return;
     }
 
@@ -46,7 +47,7 @@ async function autoScan(): Promise<void> {
       send({ type: 'scan-progress', current, total });
     });
 
-    send({ type: 'scan-results', results, rules: rulesMeta });
+    send({ type: 'scan-results', results, rules: rulesMeta, scannedCount: targets.length });
   } catch (err) {
     send({ type: 'error', message: String(err) });
   }
@@ -90,7 +91,10 @@ async function fixNode(nodeId: string, ruleId: string): Promise<string | null> {
   const rule = ruleMap.get(ruleId);
   if (!rule) return null;
 
-  const newText = rule.fix(textNode.characters);
+  // url-spacing legitimately operates on URL boundaries; other rules must not touch URLs.
+  const newText = rule.id === 'url-spacing'
+    ? rule.fix(textNode.characters)
+    : fixOutsideUrls(textNode.characters, (s) => rule.fix(s));
   if (newText === textNode.characters) return null;
 
   await loadFonts(textNode);
@@ -107,7 +111,9 @@ async function fixNodeAll(nodeId: string): Promise<string | null> {
   let text = textNode.characters;
 
   for (const rule of allRules) {
-    text = rule.fix(text);
+    text = rule.id === 'url-spacing'
+      ? rule.fix(text)
+      : fixOutsideUrls(text, (s) => rule.fix(s));
   }
 
   if (text === textNode.characters) return null;
@@ -163,7 +169,7 @@ figma.ui.onmessage = async (msg: UIMessage) => {
         // Re-scan to show remaining issues
         const updatedTargets = collectTargets(currentScope);
         const updatedResults = await scanInBatches(updatedTargets, () => {});
-        send({ type: 'fix-all-done', results: updatedResults });
+        send({ type: 'fix-all-done', results: updatedResults, scannedCount: updatedTargets.length });
       } catch (err) {
         send({ type: 'error', message: '全部修复失败：' + String(err) });
       }

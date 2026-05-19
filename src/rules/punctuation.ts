@@ -37,6 +37,36 @@ function isLatin(ch: string | undefined): boolean {
   return ch ? LATIN_RANGE.test(ch) : false;
 }
 
+const OPEN_PARENS = new Set(['(', '（']);
+const CLOSE_PARENS = new Set([')', '）']);
+
+// Pair up parens by simple stack matching. Returns a map from paren index to its partner's index.
+function pairParens(text: string): Map<number, number> {
+  const pairs = new Map<number, number>();
+  const stack: number[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (OPEN_PARENS.has(ch)) {
+      stack.push(i);
+    } else if (CLOSE_PARENS.has(ch)) {
+      const open = stack.pop();
+      if (open !== undefined) {
+        pairs.set(open, i);
+        pairs.set(i, open);
+      }
+    }
+  }
+  return pairs;
+}
+
+// Decide paren style by what's inside the pair (not the outer context).
+// Rationale: `中文 (USDT)` should keep half-width because the content is pure ASCII;
+// fullwidth around English content looks unbalanced.
+function getParenStyleByContent(text: string, openIdx: number, closeIdx: number): 'cjk' | 'latin' {
+  const inner = text.slice(openIdx + 1, closeIdx);
+  return CJK_RANGE.test(inner) ? 'cjk' : 'latin';
+}
+
 // Determine language context around a punctuation mark
 // Look at surrounding characters to decide if this is Chinese or English context
 function getContext(text: string, index: number): 'cjk' | 'latin' | 'unknown' {
@@ -78,11 +108,23 @@ export const punctuation: Rule = {
   check(text: string): TextIssue[] {
     const issues: TextIssue[] = [];
     const regex = new RegExp(ALL_PUNCT.source, 'g');
+    const parenPairs = pairParens(text);
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
       const punct = match[0];
-      const ctx = getContext(text, match.index);
+      const isParen = OPEN_PARENS.has(punct) || CLOSE_PARENS.has(punct);
+      const partner = isParen ? parenPairs.get(match.index) : undefined;
+
+      let ctx: 'cjk' | 'latin' | 'unknown';
+      if (isParen && partner !== undefined) {
+        const [openIdx, closeIdx] = match.index < partner
+          ? [match.index, partner]
+          : [partner, match.index];
+        ctx = getParenStyleByContent(text, openIdx, closeIdx);
+      } else {
+        ctx = getContext(text, match.index);
+      }
 
       if (ctx === 'cjk' && HALF_TO_FULL[punct]) {
         issues.push({
@@ -110,8 +152,19 @@ export const punctuation: Rule = {
 
   fix(text: string): string {
     const regex = new RegExp(ALL_PUNCT.source, 'g');
+    const parenPairs = pairParens(text);
     return text.replace(regex, (punct, offset) => {
-      const ctx = getContext(text, offset);
+      const isParen = OPEN_PARENS.has(punct) || CLOSE_PARENS.has(punct);
+      const partner = isParen ? parenPairs.get(offset) : undefined;
+
+      let ctx: 'cjk' | 'latin' | 'unknown';
+      if (isParen && partner !== undefined) {
+        const [openIdx, closeIdx] = offset < partner ? [offset, partner] : [partner, offset];
+        ctx = getParenStyleByContent(text, openIdx, closeIdx);
+      } else {
+        ctx = getContext(text, offset);
+      }
+
       if (ctx === 'cjk' && HALF_TO_FULL[punct]) return HALF_TO_FULL[punct];
       if (ctx === 'latin' && FULL_TO_HALF[punct]) return FULL_TO_HALF[punct];
       return punct;

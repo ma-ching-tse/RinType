@@ -54,8 +54,6 @@ const PROPER_NOUNS: Record<string, string> = {
   'css': 'CSS',
   'json': 'JSON',
   'xml': 'XML',
-  'http': 'HTTP',
-  'https': 'HTTPS',
   'sdk': 'SDK',
   'ui': 'UI',
   'ux': 'UX',

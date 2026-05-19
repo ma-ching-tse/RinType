@@ -1,5 +1,6 @@
 import type { NodeResult, TextIssue } from '../types';
 import { allRules } from '../rules';
+import { getUrlRanges, overlapsAny } from '../utils/url-ranges';
 
 interface ScanTarget {
   nodeId: string;
@@ -46,7 +47,9 @@ function collectTextNodes(node: BaseNode, targets: ScanTarget[]): void {
   }
 }
 
-// Find the nearest parent frame/component of a node
+// Find the nearest container ancestor of a node.
+// Containers include: FRAME, COMPONENT, COMPONENT_SET, GROUP, or any top-level node.
+// GROUP is included because some designers use groups instead of frames as logical containers.
 function findParentFrame(node: BaseNode): BaseNode {
   let current: BaseNode | null = node;
   while (current) {
@@ -54,6 +57,7 @@ function findParentFrame(node: BaseNode): BaseNode {
       current.type === 'FRAME' ||
       current.type === 'COMPONENT' ||
       current.type === 'COMPONENT_SET' ||
+      current.type === 'GROUP' ||
       current.parent === figma.currentPage // top-level node
     ) {
       return current;
@@ -93,6 +97,7 @@ const CAPITALIZATION_RULES = new Set([
 // Run all rules against a single text string, respecting textCase
 export function checkText(text: string, textCase?: string | null): TextIssue[] {
   const issues: TextIssue[] = [];
+  const urlRanges = getUrlRanges(text);
 
   for (const rule of allRules) {
     // UPPER or TITLE textCase: Figma already handles capitalization visually
@@ -100,7 +105,19 @@ export function checkText(text: string, textCase?: string | null): TextIssue[] {
       if (CAPITALIZATION_RULES.has(rule.id)) continue;
     }
 
-    issues.push(...rule.check(text));
+    const ruleIssues = rule.check(text);
+
+    // URLs are sensitive (case, path, params) — skip any issue overlapping a URL.
+    // `url-spacing` is the exception: it operates on URL boundaries by design.
+    if (rule.id !== 'url-spacing' && urlRanges.length > 0) {
+      for (const issue of ruleIssues) {
+        if (!overlapsAny(issue.offset, issue.offset + issue.length, urlRanges)) {
+          issues.push(issue);
+        }
+      }
+    } else {
+      issues.push(...ruleIssues);
+    }
   }
 
   return issues;
