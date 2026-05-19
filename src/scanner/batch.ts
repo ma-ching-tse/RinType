@@ -6,6 +6,7 @@ interface BatchTarget {
   nodeName: string;
   text: string;
   textCase: string | null;
+  isLikelyIdentifier?: boolean;
 }
 
 const BATCH_SIZE = 50;
@@ -22,7 +23,7 @@ export async function scanInBatches(
     const batch = targets.slice(i, i + BATCH_SIZE);
 
     for (const target of batch) {
-      const issues = checkText(target.text, target.textCase);
+      const issues = checkText(target.text, target.textCase, target.isLikelyIdentifier);
       if (issues.length > 0) {
         results.push({
           nodeId: target.nodeId,

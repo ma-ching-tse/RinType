@@ -1,6 +1,6 @@
 import type { UIMessage, PluginMessage } from './messages';
 import type { RuleMeta } from './types';
-import { collectTargets } from './scanner';
+import { collectTargets, isIdentifierValueNode } from './scanner';
 import { scanInBatches } from './scanner/batch';
 import { allRules, ruleMap } from './rules';
 import { fixOutsideUrls } from './utils/url-ranges';
@@ -109,8 +109,10 @@ async function fixNodeAll(nodeId: string): Promise<string | null> {
 
   const textNode = node as TextNode;
   let text = textNode.characters;
+  const skipThousandSep = isIdentifierValueNode(textNode);
 
   for (const rule of allRules) {
+    if (skipThousandSep && rule.id === 'thousand-separator') continue;
     text = rule.id === 'url-spacing'
       ? rule.fix(text)
       : fixOutsideUrls(text, (s) => rule.fix(s));

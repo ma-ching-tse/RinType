@@ -1,12 +1,39 @@
 import type { NodeResult, TextIssue } from '../types';
 import { allRules } from '../rules';
 import { getUrlRanges, overlapsAny } from '../utils/url-ranges';
+import { containsIdentifierKeyword } from '../utils/identifier-keywords';
 
 interface ScanTarget {
   nodeId: string;
   nodeName: string;
   text: string;
   textCase: string | null; // 'ORIGINAL' | 'UPPER' | 'LOWER' | 'TITLE' | 'SMALL_CAPS' | 'SMALL_CAPS_FORCED' | null (mixed)
+  // True when this node is a pure-numeric value whose direct-parent siblings contain
+  // an identifier keyword (e.g. "Referral Code" label next to a "77887643" value node).
+  // Used to skip thousand-separator across nodes.
+  isLikelyIdentifier?: boolean;
+}
+
+const PURE_DIGITS = /^\d{4,}$/;
+
+// Exposed for the fix path in code.ts so "fix all" can also skip thousand-separator
+// on identifier value nodes.
+export function isIdentifierValueNode(node: TextNode): boolean {
+  if (!PURE_DIGITS.test(node.characters.trim())) return false;
+  return hasIdentifierSibling(node);
+}
+
+// Look at direct-parent siblings (one level up only) for an identifier keyword. The user
+// confirmed this scope: typical label/value pairs sit in the same row container.
+function hasIdentifierSibling(node: TextNode): boolean {
+  const parent = node.parent;
+  if (!parent || !('children' in parent)) return false;
+  for (const sibling of (parent as ChildrenMixin).children) {
+    if (sibling === node) continue;
+    if (sibling.type !== 'TEXT') continue;
+    if (containsIdentifierKeyword((sibling as TextNode).characters)) return true;
+  }
+  return false;
 }
 
 // Check if a node is visible (not hidden)
@@ -30,11 +57,16 @@ function collectTextNodes(node: BaseNode, targets: ScanTarget[]): void {
       const rawCase = textNode.textCase;
       const textCase = (typeof rawCase === 'string') ? rawCase : null;
 
+      const trimmed = textNode.characters.trim();
+      const isLikelyIdentifier =
+        PURE_DIGITS.test(trimmed) && hasIdentifierSibling(textNode);
+
       targets.push({
         nodeId: node.id,
         nodeName: node.name,
         text: textNode.characters,
         textCase,
+        isLikelyIdentifier,
       });
     }
     return;
@@ -95,7 +127,11 @@ const CAPITALIZATION_RULES = new Set([
 ]);
 
 // Run all rules against a single text string, respecting textCase
-export function checkText(text: string, textCase?: string | null): TextIssue[] {
+export function checkText(
+  text: string,
+  textCase?: string | null,
+  isLikelyIdentifier?: boolean,
+): TextIssue[] {
   const issues: TextIssue[] = [];
   const urlRanges = getUrlRanges(text);
 
@@ -104,6 +140,10 @@ export function checkText(text: string, textCase?: string | null): TextIssue[] {
     if (textCase === 'UPPER' || textCase === 'TITLE') {
       if (CAPITALIZATION_RULES.has(rule.id)) continue;
     }
+
+    // Cross-node identifier detection: a pure-numeric node whose sibling contains
+    // a keyword like "Referral Code" is treated as an identifier value.
+    if (isLikelyIdentifier && rule.id === 'thousand-separator') continue;
 
     const ruleIssues = rule.check(text);
 
@@ -128,7 +168,7 @@ export function scanTargets(targets: ScanTarget[]): NodeResult[] {
   const results: NodeResult[] = [];
 
   for (const target of targets) {
-    const issues = checkText(target.text);
+    const issues = checkText(target.text, target.textCase, target.isLikelyIdentifier);
     if (issues.length > 0) {
       results.push({
         nodeId: target.nodeId,
