@@ -28,10 +28,17 @@
       <div class="progress-fill" id="progress-fill"></div>
     </div>
 
-    <!-- Empty state -->
+    <!-- Empty state (idle: nothing selected / no text) -->
     <div class="empty-state" id="empty-state">
-      <div class="empty-icon">✓</div>
+      <div class="empty-icon">✦</div>
       <p>选中画板或文本图层即可自动检查</p>
+    </div>
+
+    <!-- Success state (text scanned, no issues) -->
+    <div class="success-state hidden" id="success-state">
+      <div class="success-icon">✓</div>
+      <p class="success-title">文案规范良好</p>
+      <p class="success-sub" id="success-sub">未发现文法问题</p>
     </div>
 
     <!-- Issue list -->

@@ -179,6 +179,47 @@ body {
   opacity: 0.3;
 }
 
+/* Success state */
+.success-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.success-state.hidden {
+  display: none;
+}
+
+.success-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #e6ffed;
+  color: #22863a;
+  font-size: 26px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.success-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--figma-color-text, #22863a);
+}
+
+.success-sub {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary, #999);
+}
+
 /* Issue list */
 .issue-list {
   flex: 1;

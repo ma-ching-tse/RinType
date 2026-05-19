@@ -5,6 +5,7 @@ import type { NodeResult, RuleMeta } from './types';
 let currentScope: 'frame' | 'selection' = 'frame';
 let results: NodeResult[] = [];
 let rules: RuleMeta[] = [];
+let scannedCount: number = 0;
 let activeFilters: Set<string> = new Set();
 let skippedIssues: Set<string> = new Set(); // "nodeId:ruleId:offset"
 let fixedIssues: Set<string> = new Set();
@@ -16,6 +17,8 @@ const filterBar = document.getElementById('filter-bar') as HTMLDivElement;
 const progressBar = document.getElementById('progress-bar') as HTMLDivElement;
 const progressFill = document.getElementById('progress-fill') as HTMLDivElement;
 const emptyState = document.getElementById('empty-state') as HTMLDivElement;
+const successState = document.getElementById('success-state') as HTMLDivElement;
+const successSub = document.getElementById('success-sub') as HTMLParagraphElement;
 const issueList = document.getElementById('issue-list') as HTMLDivElement;
 
 // Send message to plugin
@@ -125,17 +128,40 @@ function renderIssues(): void {
 
   if (filteredResults.length === 0) {
     issueList.classList.remove('visible');
-    emptyState.classList.remove('hidden');
-    const icon = emptyState.querySelector('.empty-icon') as HTMLDivElement;
-    const text = emptyState.querySelector('p') as HTMLParagraphElement;
-    if (results.length > 0) {
-      icon.textContent = '✓';
-      text.textContent = '没有发现问题，文本规范良好';
+
+    // Three states:
+    // 1) Text was scanned and no issues found → success state
+    // 2) Filtered to empty but issues exist elsewhere → success-like message
+    // 3) Nothing scanned (no selection / no text) → idle empty state
+    const hasUnfilteredIssues = results.length > 0;
+
+    if (scannedCount > 0 && !hasUnfilteredIssues) {
+      // True success: scanned text, zero issues across the board
+      emptyState.classList.add('hidden');
+      successState.classList.remove('hidden');
+      successSub.textContent = `已检查 ${scannedCount} 个文本图层，未发现文法问题`;
+    } else if (hasUnfilteredIssues) {
+      // Filtered to empty but there are issues in other rules
+      emptyState.classList.remove('hidden');
+      successState.classList.add('hidden');
+      const icon = emptyState.querySelector('.empty-icon') as HTMLDivElement;
+      const text = emptyState.querySelector('p') as HTMLParagraphElement;
+      icon.textContent = '·';
+      text.textContent = '当前筛选下没有匹配的问题';
+    } else {
+      // Idle: nothing selected or no text in selection
+      emptyState.classList.remove('hidden');
+      successState.classList.add('hidden');
+      const icon = emptyState.querySelector('.empty-icon') as HTMLDivElement;
+      const text = emptyState.querySelector('p') as HTMLParagraphElement;
+      icon.textContent = '✦';
+      text.textContent = '选中画板或文本图层即可自动检查';
     }
     return;
   }
 
   emptyState.classList.add('hidden');
+  successState.classList.add('hidden');
   issueList.classList.add('visible');
 
   for (const result of filteredResults) {
@@ -256,6 +282,7 @@ window.onmessage = (event: MessageEvent) => {
     case 'scan-results': {
       results = msg.results;
       rules = msg.rules;
+      scannedCount = msg.scannedCount;
       progressBar.style.display = 'none';
 
       const totalIssues = results.reduce((n, r) => n + r.issues.length, 0);
@@ -287,6 +314,7 @@ window.onmessage = (event: MessageEvent) => {
 
     case 'fix-all-done': {
       results = msg.results;
+      scannedCount = msg.scannedCount;
       fixAllBtn.textContent = '全部修复';
       fixAllBtn.disabled = results.length === 0;
       fixedIssues.clear();

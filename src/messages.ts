@@ -10,8 +10,8 @@ export type UIMessage =
 
 // Messages from plugin to UI
 export type PluginMessage =
-  | { type: 'scan-results'; results: NodeResult[]; rules: RuleMeta[] }
+  | { type: 'scan-results'; results: NodeResult[]; rules: RuleMeta[]; scannedCount: number }
   | { type: 'scan-progress'; current: number; total: number }
   | { type: 'fix-done'; nodeId: string; ruleId: string; newText: string }
-  | { type: 'fix-all-done'; results: NodeResult[] }
+  | { type: 'fix-all-done'; results: NodeResult[]; scannedCount: number }
   | { type: 'error'; message: string };
