@@ -40,6 +40,16 @@ function isLatin(ch: string | undefined): boolean {
 const OPEN_PARENS = new Set(['(', '（']);
 const CLOSE_PARENS = new Set([')', '）']);
 
+// A '.' or ',' between two digits is a decimal point or thousand separator,
+// not a sentence punctuation mark — e.g. 5.00, 1,000.
+function isNumericSeparator(text: string, index: number): boolean {
+  const ch = text[index];
+  if (ch !== '.' && ch !== ',') return false;
+  const prev = text[index - 1];
+  const next = text[index + 1];
+  return !!prev && !!next && /\d/.test(prev) && /\d/.test(next);
+}
+
 // Pair up parens by simple stack matching. Returns a map from paren index to its partner's index.
 function pairParens(text: string): Map<number, number> {
   const pairs = new Map<number, number>();
@@ -113,6 +123,7 @@ export const punctuation: Rule = {
 
     while ((match = regex.exec(text)) !== null) {
       const punct = match[0];
+      if (isNumericSeparator(text, match.index)) continue;
       const isParen = OPEN_PARENS.has(punct) || CLOSE_PARENS.has(punct);
       const partner = isParen ? parenPairs.get(match.index) : undefined;
 
@@ -154,6 +165,7 @@ export const punctuation: Rule = {
     const regex = new RegExp(ALL_PUNCT.source, 'g');
     const parenPairs = pairParens(text);
     return text.replace(regex, (punct, offset) => {
+      if (isNumericSeparator(text, offset)) return punct;
       const isParen = OPEN_PARENS.has(punct) || CLOSE_PARENS.has(punct);
       const partner = isParen ? parenPairs.get(offset) : undefined;
 
