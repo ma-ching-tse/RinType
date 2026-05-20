@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>RinType 文案规范速查</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    padding: 40px 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .poster {
+    width: 640px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff;
+    padding: 48px 40px 40px;
+    text-align: center;
+  }
+  .header .logo {
+    font-size: 14px;
+    letter-spacing: 4px;
+    opacity: 0.8;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 34px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    opacity: 0.9;
+    line-height: 1.5;
+  }
+  .header .count {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 6px 16px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 100px;
+    font-size: 13px;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Categories */
+  .category {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid #f0f0f3;
+  }
+  .category:last-of-type {
+    border-bottom: none;
+  }
+  .cat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .cat-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .cat-1 .cat-badge { background: #3b82f6; }
+  .cat-2 .cat-badge { background: #f59e0b; }
+  .cat-3 .cat-badge { background: #10b981; }
+  .cat-4 .cat-badge { background: #ec4899; }
+  .cat-5 .cat-badge { background: #ef4444; }
+  .cat-6 .cat-badge { background: #8b5cf6; }
+  .cat-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .cat-note {
+    margin-left: auto;
+    font-size: 11px;
+    color: #86868b;
+    background: #f5f5f7;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  /* Rule rows */
+  .rule {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 16px;
+    padding: 10px 0;
+    align-items: center;
+  }
+  .rule + .rule {
+    border-top: 1px solid #fafafa;
+  }
+  .rule-name {
+    font-size: 13px;
+    color: #1d1d1f;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .examples {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'SF Mono', 'Menlo', 'Monaco', Consolas, monospace;
+    font-size: 13px;
+  }
+  .bad {
+    background: #fef2f2;
+    color: #b91c1c;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-decoration: line-through;
+    text-decoration-color: #fca5a5;
+  }
+  .good {
+    background: #ecfdf5;
+    color: #065f46;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .arrow {
+    color: #d2d2d7;
+    font-size: 14px;
+  }
+
+  /* Skip section */
+  .skip {
+    background: #fafafa;
+    padding: 28px 40px;
+  }
+  .skip h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .skip-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 24px;
+  }
+  .skip-list li {
+    font-size: 12px;
+    color: #4b5563;
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .skip-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    font-weight: 700;
+  }
+
+  /* Tips section */
+  .tips {
+    padding: 32px 40px 40px;
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  }
+  .tips h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #78350f;
+  }
+  .tip-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+  .tip-item:last-child { margin-bottom: 0; }
+  .tip-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tip-text {
+    font-size: 13px;
+    color: #78350f;
+    line-height: 1.5;
+    padding-top: 3px;
+  }
+  .tip-text strong {
+    color: #1d1d1f;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 24px 40px;
+    background: #1d1d1f;
+    color: #86868b;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .footer strong { color: #fff; }
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">RINTYPE</div>
+    <h1>文案规范速查</h1>
+    <div class="subtitle">Figma 中英文文案自动检查工具<br>设计时对照检查，提升出图质量</div>
+    <div class="count">15 条规则 · 6 大类别</div>
+  </div>
+
+  <!-- 一、空格与间距 -->
+  <div class="category cat-1">
+    <div class="cat-header">
+      <div class="cat-badge">1</div>
+      <div class="cat-title">空格与间距</div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">首尾空白</div>
+      <div class="examples"><span class="bad">␣你好␣</span><span class="arrow">→</span><span class="good">你好</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">连续空格</div>
+      <div class="examples"><span class="bad">你好&nbsp;&nbsp;world</span><span class="arrow">→</span><span class="good">你好 world</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">中英文间距</div>
+      <div class="examples"><span class="bad">你好world</span><span class="arrow">→</span><span class="good">你好 world</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">中数字间距</div>
+      <div class="examples"><span class="bad">100个</span><span class="arrow">→</span><span class="good">100 个</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">运算符两侧</div>
+      <div class="examples"><span class="bad">5+3=8</span><span class="arrow">→</span><span class="good">5 + 3 = 8</span></div>
+    </div>
+  </div>
+
+  <!-- 二、大小写 -->
+  <div class="category cat-2">
+    <div class="cat-header">
+      <div class="cat-badge">2</div>
+      <div class="cat-title">大小写</div>
+      <div class="cat-note">TITLE/UPPER 自动跳过</div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">专有名词</div>
+      <div class="examples"><span class="bad">ios / github</span><span class="arrow">→</span><span class="good">iOS / GitHub</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">分割线前后</div>
+      <div class="examples"><span class="bad">design / dev</span><span class="arrow">→</span><span class="good">Design / Dev</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">英文句首</div>
+      <div class="examples"><span class="bad">this is good.</span><span class="arrow">→</span><span class="good">This is good.</span></div>
+    </div>
+  </div>
+
+  <!-- 三、标点符号 -->
+  <div class="category cat-3">
+    <div class="cat-header">
+      <div class="cat-badge">3</div>
+      <div class="cat-title">标点符号</div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">中英文匹配</div>
+      <div class="examples"><span class="bad">你好,world.</span><span class="arrow">→</span><span class="good">你好，world.</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">括号按内容</div>
+      <div class="examples"><span class="bad">理财(持仓中)</span><span class="arrow">→</span><span class="good">理财（持仓中）</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">英文内容半角</div>
+      <div class="examples"><span class="bad">产品（USDT）</span><span class="arrow">→</span><span class="good">产品 (USDT)</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">中文破折号</div>
+      <div class="examples"><span class="bad">设计--开发</span><span class="arrow">→</span><span class="good">设计——开发</span></div>
+    </div>
+  </div>
+
+  <!-- 四、字符规范 -->
+  <div class="category cat-4">
+    <div class="cat-header">
+      <div class="cat-badge">4</div>
+      <div class="cat-title">字符规范</div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">全角 → 半角</div>
+      <div class="examples"><span class="bad">Ａｂｃ１２３</span><span class="arrow">→</span><span class="good">Abc123</span></div>
+    </div>
+  </div>
+
+  <!-- 五、数字与货币 -->
+  <div class="category cat-5">
+    <div class="cat-header">
+      <div class="cat-badge">5</div>
+      <div class="cat-title">数字与货币</div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">千分符</div>
+      <div class="examples"><span class="bad">1000000</span><span class="arrow">→</span><span class="good">1,000,000</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">数字 + 单位</div>
+      <div class="examples"><span class="bad">100USD</span><span class="arrow">→</span><span class="good">100 USD</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">百分号紧贴</div>
+      <div class="examples"><span class="bad">100 %</span><span class="arrow">→</span><span class="good">100%</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">货币符紧贴</div>
+      <div class="examples"><span class="bad">$ 50</span><span class="arrow">→</span><span class="good">$50</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">正负号位置</div>
+      <div class="examples"><span class="bad">$+1.45</span><span class="arrow">→</span><span class="good">+$1.45</span></div>
+    </div>
+  </div>
+
+  <!-- 六、单位 -->
+  <div class="category cat-6">
+    <div class="cat-header">
+      <div class="cat-badge">6</div>
+      <div class="cat-title">单位</div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">时间单位小写</div>
+      <div class="examples"><span class="bad">3Y / 5D / 2H</span><span class="arrow">→</span><span class="good">3y / 5d / 2h</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">月份大写 M</div>
+      <div class="examples"><span class="bad">3m（月）</span><span class="arrow">→</span><span class="good">3M（月）</span></div>
+    </div>
+    <div class="rule">
+      <div class="rule-name">计量单位大写</div>
+      <div class="examples"><span class="bad">10k / $5m / 2b</span><span class="arrow">→</span><span class="good">10K / $5M / 2B</span></div>
+    </div>
+  </div>
+
+  <!-- Skip conditions -->
+  <div class="skip">
+    <h3>🛡 自动跳过的情况</h3>
+    <ul class="skip-list">
+      <li>URL 链接内部所有规则</li>
+      <li>隐藏图层及子节点</li>
+      <li>TITLE / UPPER Text Case</li>
+      <li>年份和日期格式</li>
+      <li>Order ID / 邀请码等标识符</li>
+      <li>日期 2016-01-01 中的横线</li>
+    </ul>
+  </div>
+
+  <!-- Tips -->
+  <div class="tips">
+    <h3>💡 设计时记住 3 件事</h3>
+    <div class="tip-item">
+      <div class="tip-num">1</div>
+      <div class="tip-text"><strong>中英文之间留一格空格</strong>（数字也算英文）</div>
+    </div>
+    <div class="tip-item">
+      <div class="tip-num">2</div>
+      <div class="tip-text"><strong>中文用中文标点，英文用英文标点</strong>（括号按内容判断）</div>
+    </div>
+    <div class="tip-item">
+      <div class="tip-num">3</div>
+      <div class="tip-text"><strong>专有名词用官方写法</strong>（iOS、GitHub、BitMart 等）</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
