@@ -14,6 +14,8 @@ import { sentenceCapitalization } from './sentence-capitalization';
 import { dashNormalize } from './dash-normalize';
 import { urlSpacing } from './url-spacing';
 import { operatorSpacing } from './operator-spacing';
+import { brandTerms } from './brand-terms';
+import { englishTypos } from './english-typos';
 
 // Rules are executed in this order
 export const allRules: Rule[] = [
@@ -32,6 +34,8 @@ export const allRules: Rule[] = [
   dashNormalize,
   urlSpacing,
   operatorSpacing,
+  brandTerms,
+  englishTypos,
 ];
 
 export const ruleMap = new Map<string, Rule>(

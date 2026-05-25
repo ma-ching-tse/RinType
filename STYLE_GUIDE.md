@@ -42,10 +42,16 @@
 > 共享逻辑：当 Figma Text Case 为 TITLE 或 UPPER 时，本类规则自动跳过。
 
 ### 6. 专有名词大小写 `capitalization`
-- 专有名词应使用正确的大小写拼写
-- 已收录：iOS、iPhone、macOS、GitHub、JavaScript、TypeScript、BitMart 等
+- 通用技术专有名词使用正确的大小写拼写
+- 已收录：iOS、iPhone、macOS、GitHub、JavaScript、TypeScript 等
 - 不收录 `http` / `https`：避免破坏 URL 链接（链接中必须保持小写）
 - 严重度：warning
+
+### 6.5 品牌术语 `brand-terms`
+- BitMart 品牌、币种代码、Web3 术语应使用官方写法
+- 已收录：BitMart、BTC、ETH、USDT、DeFi、NFT、Web3、DAO、MetaMask、Coinbase 等
+- 与通用专有名词分开，便于团队扩展公司术语库（产品名、合约名、活动名等可补充进去）
+- 严重度：**error**（品牌一致性视为硬要求）
 
 ### 7. 分割线首字母大写 `separator-capitalization`
 - 分割线（`/` `|` `—` `–` `·`）前后的文本首字母应大写
@@ -124,6 +130,17 @@
 - 计量单位均大写：K（千）、M（百万）、B（十亿）
 - K/B 无歧义直接校验；M 仅在前面有 `$` 等货币符号时判定为计量单位
 - 示例：`10k` → `10K`，`$5m` → `$5M`，`2b` → `2B`
+- 严重度：warning
+
+---
+
+## 七、英文拼写
+
+### 16. 英文拼写错误 `english-typos`
+- 检测确定性的常见英文错拼（不含地区拼写差异）
+- 词典原则：仅收录在英美拼写下均为错误的词，例如 `recieve` / `seperate` / `occured` / `definately` / `enviroment` / `goverment` / `accomodate`
+- 不收录有效的地区差异（如 `colour` / `color`、`organise` / `organize`）
+- 自动保留原大小写：`Recieve` → `Receive`，`SEPERATE` → `SEPARATE`
 - 严重度：warning
 
 ---

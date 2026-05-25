@@ -124,6 +124,7 @@ const CAPITALIZATION_RULES = new Set([
   'capitalization',
   'separator-capitalization',
   'sentence-capitalization',
+  'brand-terms',
 ]);
 
 // Run all rules against a single text string, respecting textCase
