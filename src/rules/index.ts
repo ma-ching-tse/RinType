@@ -16,6 +16,7 @@ import { urlSpacing } from './url-spacing';
 import { operatorSpacing } from './operator-spacing';
 import { brandTerms } from './brand-terms';
 import { englishTypos } from './english-typos';
+import { parenSpacing } from './paren-spacing';
 
 // Rules are executed in this order
 export const allRules: Rule[] = [
@@ -25,6 +26,7 @@ export const allRules: Rule[] = [
   fullwidthHalfwidth,
   capitalization,
   punctuation,
+  parenSpacing,
   timeUnits,
   quantityUnits,
   separatorCapitalization,
