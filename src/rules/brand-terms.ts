@@ -10,6 +10,35 @@ const BRAND_TERMS: Record<string, string> = {
   // Company & product
   'bitmart': 'BitMart',
 
+  // Fiat currency codes (ISO 4217, all-uppercase canonical).
+  // Intentionally excluded: TRY (conflicts with English "try"), RUB ("rub"), PHP
+  // (PHP programming language). If these are needed, add them via a numeric-context
+  // rule instead — matching them everywhere causes false positives in normal prose.
+  'usd': 'USD',
+  'eur': 'EUR',
+  'gbp': 'GBP',
+  'jpy': 'JPY',
+  'cny': 'CNY',
+  'hkd': 'HKD',
+  'krw': 'KRW',
+  'inr': 'INR',
+  'sgd': 'SGD',
+  'aud': 'AUD',
+  'cad': 'CAD',
+  'chf': 'CHF',
+  'nzd': 'NZD',
+  'twd': 'TWD',
+  'myr': 'MYR',
+  'thb': 'THB',
+  'idr': 'IDR',
+  'vnd': 'VND',
+  'brl': 'BRL',
+  'mxn': 'MXN',
+  'aed': 'AED',
+  'sar': 'SAR',
+  'zar': 'ZAR',
+  'ngn': 'NGN',
+
   // Crypto tickers (uppercase canonical)
   'btc': 'BTC',
   'eth': 'ETH',
@@ -79,8 +108,7 @@ const BRAND_TERMS: Record<string, string> = {
   'bybit': 'Bybit',
   'kucoin': 'KuCoin',
   'huobi': 'Huobi',
-  'gate.io': 'Gate.io',
-  'gateio': 'Gate.io',
+  'gate': 'Gate',
   'bitcoin': 'Bitcoin',
   'ethereum': 'Ethereum',
   'solana': 'Solana',
