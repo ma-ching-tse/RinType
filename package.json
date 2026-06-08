@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node esbuild.js",
     "watch": "node esbuild.js --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "telemetry:report": "node server/rintype-report.js"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.100.0",
