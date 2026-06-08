@@ -1,9 +1,10 @@
 import type { UIMessage, PluginMessage } from './messages';
-import type { RuleMeta } from './types';
+import type { RuleMeta, NodeResult } from './types';
 import { collectTargets, isIdentifierValueNode } from './scanner';
 import { scanInBatches } from './scanner/batch';
 import { allRules, ruleMap } from './rules';
 import { fixOutsideUrls } from './utils/url-ranges';
+import { createTelemetry, generateInstallId, type TelemetryIdentity } from './telemetry/telemetry';
 
 // Show plugin UI
 figma.showUI(__html__, {
@@ -11,6 +12,61 @@ figma.showUI(__html__, {
   height: 620,
   themeColors: true,
 });
+
+// Team-wide usage reporting — always on, no opt-out UI by design (matches
+// RinScanner). Points at the SAME ingest server; events carry product:'rintype'
+// so the shared events.jsonl stays separable. MUST be HTTPS — Figma blocks
+// plugin requests to insecure http:// URLs (mixed content). Reporting is
+// fire-and-forget and fully silent, so it never affects the plugin.
+const TELEMETRY_URL = 'https://47.79.20.248.sslip.io/telemetry';
+const INSTALL_ID_KEY = 'rintype-install-id';
+let telemetryIdentity: TelemetryIdentity = { installId: '', userId: null, userName: null };
+
+const telemetry = createTelemetry(
+  () => ({ url: TELEMETRY_URL }),
+  () => ({
+    identity: telemetryIdentity,
+    file: { fileKey: figma.fileKey ?? null, fileName: figma.root.name || null },
+  }),
+);
+
+// Resolve a stable install id + named identity for reporting (fire-and-forget).
+(async function initTelemetryIdentity() {
+  try {
+    let installId = await figma.clientStorage.getAsync(INSTALL_ID_KEY);
+    if (typeof installId !== 'string' || !installId) {
+      installId = generateInstallId();
+      await figma.clientStorage.setAsync(INSTALL_ID_KEY, installId);
+    }
+    telemetryIdentity = {
+      installId,
+      userId: figma.currentUser?.id ?? null,
+      userName: figma.currentUser?.name ?? null,
+    };
+  } catch {
+    // clientStorage unavailable — leave identity blank; reporting still works (anonymous install).
+  }
+})();
+
+// Summarise a scan result set into the telemetry `found` shape: total issue
+// count + per-rule breakdown. Never includes the matched text itself.
+function summarizeFound(results: NodeResult[]): { total: number; byRule: Record<string, number> } {
+  const byRule: Record<string, number> = {};
+  let total = 0;
+  for (const r of results) {
+    for (const issue of r.issues) {
+      byRule[issue.ruleId] = (byRule[issue.ruleId] || 0) + 1;
+      total++;
+    }
+  }
+  return { total, byRule };
+}
+
+function countIssues(results: NodeResult[]): number {
+  let total = 0;
+  for (const r of results) total += r.issues.length;
+  return total;
+}
 
 // Build rule metadata for the UI
 const rulesMeta: RuleMeta[] = allRules.map((r) => ({
@@ -34,13 +90,13 @@ function send(msg: PluginMessage): void {
 // Auto-scan based on current selection and scope
 let scanTimer: number | null = null;
 
-async function autoScan(): Promise<void> {
+async function autoScan(): Promise<{ results: NodeResult[]; scannedCount: number }> {
   try {
     const targets = collectTargets(currentScope);
 
     if (targets.length === 0) {
       send({ type: 'scan-results', results: [], rules: rulesMeta, scannedCount: 0 });
-      return;
+      return { results: [], scannedCount: 0 };
     }
 
     const results = await scanInBatches(targets, (current, total) => {
@@ -48,8 +104,10 @@ async function autoScan(): Promise<void> {
     });
 
     send({ type: 'scan-results', results, rules: rulesMeta, scannedCount: targets.length });
+    return { results, scannedCount: targets.length };
   } catch (err) {
     send({ type: 'error', message: String(err) });
+    return { results: [], scannedCount: 0 };
   }
 }
 
@@ -136,7 +194,15 @@ figma.ui.onmessage = async (msg: UIMessage) => {
 
     case 'scan': {
       currentScope = msg.scope;
-      await autoScan();
+      // Only the explicit "scan" action is reported — never the debounced
+      // auto-scan that fires on every selection change (would flood the server).
+      const { results, scannedCount } = await autoScan();
+      telemetry.track({
+        event: 'scan',
+        scanned: scannedCount,
+        scope: currentScope,
+        found: summarizeFound(results),
+      });
       break;
     }
 
@@ -146,6 +212,7 @@ figma.ui.onmessage = async (msg: UIMessage) => {
         const newText = await fixNode(msg.nodeId, msg.ruleId);
         if (newText !== null) {
           send({ type: 'fix-done', nodeId: msg.nodeId, ruleId: msg.ruleId, newText });
+          telemetry.track({ event: 'fix', fixKind: msg.ruleId, count: 1 });
         } else {
           send({ type: 'error', message: '修复失败：文本未发生变化或节点不存在' });
         }
@@ -162,6 +229,7 @@ figma.ui.onmessage = async (msg: UIMessage) => {
         // Re-scan to get current state
         const targets = collectTargets(currentScope);
         const results = await scanInBatches(targets, () => {});
+        const issuesBefore = countIssues(results);
 
         // Fix all nodes
         for (const result of results) {
@@ -172,6 +240,8 @@ figma.ui.onmessage = async (msg: UIMessage) => {
         const updatedTargets = collectTargets(currentScope);
         const updatedResults = await scanInBatches(updatedTargets, () => {});
         send({ type: 'fix-all-done', results: updatedResults, scannedCount: updatedTargets.length });
+        const fixedCount = Math.max(0, issuesBefore - countIssues(updatedResults));
+        if (fixedCount > 0) telemetry.track({ event: 'fix', fixKind: 'all', count: fixedCount });
       } catch (err) {
         send({ type: 'error', message: '全部修复失败：' + String(err) });
       }
