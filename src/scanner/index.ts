@@ -120,7 +120,7 @@ export function collectTargets(scope: 'frame' | 'selection'): ScanTarget[] {
 }
 
 // Rules that should be skipped when Figma's textCase handles capitalization
-const CAPITALIZATION_RULES = new Set([
+export const CAPITALIZATION_RULES = new Set([
   'capitalization',
   'separator-capitalization',
   'sentence-capitalization',
