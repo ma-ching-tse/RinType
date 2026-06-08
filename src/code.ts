@@ -90,6 +90,29 @@ function send(msg: PluginMessage): void {
 // Auto-scan based on current selection and scope
 let scanTimer: number | null = null;
 
+// De-dupe scan reporting. RinType's scan is automatic — it re-runs on every
+// selection change (and after fixes refresh the view). To make "发现"/扫描
+// meaningful instead of either zero (old bug: reporting was tied to a manual
+// scan action the UI never sends) or flooded, we report a scan only the FIRST
+// time a given selection-with-issues is seen. Keyed by file + scope + node set;
+// the set lives for the plugin session and resets when it reopens.
+const reportedScans = new Set<string>();
+
+// Report a scan to telemetry, de-duped. Clean/empty scans aren't counted, and
+// the same selection is reported at most once — so repeated auto-scans (clicking
+// around, post-fix refreshes) don't inflate the numbers.
+function reportScan(targets: { nodeId: string }[], results: NodeResult[]): void {
+  const found = summarizeFound(results);
+  if (found.total === 0) return;
+  const sig =
+    (figma.fileKey ?? '') +
+    '|' + currentScope +
+    '|' + targets.map((t) => t.nodeId).sort().join(',');
+  if (reportedScans.has(sig)) return;
+  reportedScans.add(sig);
+  telemetry.track({ event: 'scan', scanned: targets.length, scope: currentScope, found });
+}
+
 async function autoScan(): Promise<{ results: NodeResult[]; scannedCount: number }> {
   try {
     const targets = collectTargets(currentScope);
@@ -104,6 +127,7 @@ async function autoScan(): Promise<{ results: NodeResult[]; scannedCount: number
     });
 
     send({ type: 'scan-results', results, rules: rulesMeta, scannedCount: targets.length });
+    reportScan(targets, results);
     return { results, scannedCount: targets.length };
   } catch (err) {
     send({ type: 'error', message: String(err) });
@@ -241,15 +265,9 @@ figma.ui.onmessage = async (msg: UIMessage) => {
 
     case 'scan': {
       currentScope = msg.scope;
-      // Only the explicit "scan" action is reported — never the debounced
-      // auto-scan that fires on every selection change (would flood the server).
-      const { results, scannedCount } = await autoScan();
-      telemetry.track({
-        event: 'scan',
-        scanned: scannedCount,
-        scope: currentScope,
-        found: summarizeFound(results),
-      });
+      // Scan telemetry is reported (de-duped) inside autoScan itself, since the
+      // real scan path is automatic. This explicit case is kept for compatibility.
+      await autoScan();
       break;
     }
 
